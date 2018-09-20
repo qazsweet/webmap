@@ -1,0 +1,115 @@
+MAP
+    NAME "Dutch Adminisrative Boundaries"
+    IMAGECOLOR 255 255 255
+    TRANSPARENT ON
+    SIZE 1700 1700
+  #---
+	PROJECTION
+        "init=epsg:28992"
+    END
+  #---
+    EXTENT -90000 290000 430000 630000
+
+#----- Start of WEB DEFINITION ------
+	WEB
+		IMAGEPATH "/ms4w/tmp/ms_tmp/"
+		IMAGEURL "/ms_tmp/"
+	  #---
+		METADATA
+            "map" "d:/iishome/student/s6035280/assignment/app/api/adminboundaries.map"
+            "ows_schemas_location" "http://schemas.opengeospatial.net"
+			"ows_title""Dutch adminisrative boundaries at various levels."
+			"ows_abstract" "WMS & WFS with Dutch administrative boundaries. Data from CBS www.cbs.nl"
+			"ows_onlineresource" "https://gisedu.itc.utwente.nl/cgi-bin/mapserv.exe?"
+			"ows_fees""None"
+			"ows_accessconstraints" "None"
+          #---
+			"wms_contactperson" "SDI-T Team"
+			"wms_contactorganization" "ITC"
+			"wms_addresstype" "Postal"
+			"wms_address" "Hengelosestraat 99"
+			"wms_city" "Enschede"
+			"wms_stateorprovince" "Overijssel"
+			"wms_postcode" "7514 AE"
+			"wms_country" "The Netherlands"
+			"wms_title" "WMS service of Dutch Adminisrative Boundaries"
+			"wms_srs" "EPSG:4326 EPSG:28992 EPSG:3857 EPSG:3044"
+			"wms_feature_info_mime_type" "application/vnd.ogc.gml"
+			"wms_feature_info_mime_type" "text/plain"
+			"wms_feature_info_mime_type" "text/html"
+			"wms_server_version" "1.1.1"
+			"wms_formatlist""image/png,image/gif,image/bmp,image/jpeg"
+			"wms_format" "image/png"
+			"wms_enable_request" "GetMap GetFeatureInfo GetCapabilities"
+          #---
+            "wfs_title" "WFS service of Dutch Adminisrative Boundaries"
+            "wfs_srs" "EPSG:4326 EPSG:28992 EPSG:3857 EPSG:3044"
+            "wfs_server_version" "1.0.0"
+            "wfs_namespace_prefix" "cbs"
+            "wfs_enable_request" "GetFeature DescribeFeature GetCapabilities"
+		END
+	END
+#----- End of WEB DEFINITION ------
+ 
+  #---
+    OUTPUTFORMAT
+        NAME "geojson"
+        DRIVER "OGR/GEOJSON"
+        MIMETYPE "application/json; subtype=geojson"
+        FORMATOPTION "STORAGE=stream"
+        FORMATOPTION "FORM=SIMPLE"
+    END
+  #---
+ 
+
+#----- Start of LAYER DEFINITIONS ------
+    #----- districts layer -----
+    LAYER
+        NAME "districts"
+        TYPE POLYGON
+        STATUS ON
+        DUMP TRUE
+      #---
+        CONNECTIONTYPE postgis
+        CONNECTION "user=exercises password=exercises host=gisedu.itc.utwente.nl
+                    port=5432 dbname=exercises options='-c client_encoding=UTF8'"
+        DATA "ogc_geom FROM 
+                (SELECT gid AS ogc_id, wk_code AS district_code,
+                        regexp_replace(wk_name, 'Wijk (.. )', '') AS district_name,
+                        geom AS ogc_geom 
+                 FROM netherlands.district
+                 WHERE gm_naam LIKE '%CITYNAME%') 
+              AS query USING UNIQUE ogc_id USING SRID=28992"             
+      #---
+        VALIDATION
+          "default_CITYNAME" "%"
+          "CITYNAME" ".+$"
+        END
+      #---
+        PROJECTION
+          "init=epsg:28992"
+        END
+      #---
+        METADATA
+            "wms_title" "Dutch Districts"
+            "wms_abstract" "Administrative level between Municipality and Neighbourhood."
+            "wms_include_items" "all"
+            "wfs_title" "Dutch Districts"
+            "wfs_abstract" "Administrative level between Municipality and Neighbourhood."
+            "wfs_getfeature_formatlist" "geojson"
+            "gml_featureid" "ogc_id"
+            "gml_include_items" "all"
+        END
+      #---
+        CLASS
+            NAME "district"
+            STYLE
+                OUTLINECOLOR 130 60 255
+                WIDTH 1
+            END
+        END
+        OPACITY 60
+    END #----- districts layer -----
+
+#----- End of LAYER DEFINITIONS ------
+END
